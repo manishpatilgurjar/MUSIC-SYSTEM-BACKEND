@@ -1,4 +1,5 @@
 export const ResponseMessages={
+    songUploaded:"song uploaded",
     userRegistered :"User registered successfully",
     userAlredyExist:"User already exists",
     userUsernameAlreadyExist:"Username is not available",

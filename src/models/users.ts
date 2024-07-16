@@ -29,7 +29,8 @@ const UserSchema: Schema = new Schema({
     profilePhoto: {type:String,default:null},
     about:{type:String,default:null},
     country:{type:String,default:null},
-    website:{type:String,default:null}
+    website:{type:String,default:null},
+    role:{type:String,default:null},
 });
 
 export default mongoose.model<UserDocument>('User', UserSchema);
