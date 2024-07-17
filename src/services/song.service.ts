@@ -10,11 +10,6 @@ import { upload } from '../configs/s3';
 interface UploadedFile extends Express.Multer.File {
     location: string;
 }
-
-
-
-
-
 class SongService {
     public async uploadSong(req: Request) {
         return new Promise((resolve, reject) => {
