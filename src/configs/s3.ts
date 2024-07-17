@@ -1,34 +1,26 @@
-// import AWS from 'aws-sdk';
-// import dotenv from 'dotenv';
-// import { S3Client } from '@aws-sdk/client-s3';
-
-// AWS.config.update({
-//     accessKeyId:'AKIAQ3EGRG6PQL7IVWXL' ,
-//     secretAccessKey:'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',
-//     region:"ap-south-1",
-// });
-
-// const s3 = new S3Client({
-//     region:'ap-south-1',
-    // credentials: {
-    //     accessKeyId:'AKIAQ3EGRG6PQL7IVWXL',
-    //     secretAccessKey:'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',
-    // },
-// });
-
-// export default s3;
-
 import { S3Client } from "@aws-sdk/client-s3";
+import { Request } from "express";
+import multer from 'multer';
+import multerS3 from 'multer-s3';
 import dotenv from "dotenv";
-
 dotenv.config();
 
-const s3 = new S3Client({
-        region:'ap-south-1',
+export const s3 = new S3Client({
+    region: process.env.S3_REGION!,
     credentials: {
-        accessKeyId:'AKIAQ3EGRG6P7Y32RRI7',
-        secretAccessKey:'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',
+        accessKeyId: process.env.S3_KEY!,
+        secretAccessKey: process.env.S3_SECRET!,
     },
 });
 
-export default s3;
+export const upload = multer({
+    storage: multerS3({
+        s3: s3,
+        bucket: process.env.S3_BUCKET!,
+        key: (req: Request, file: Express.Multer.File, cb) => {
+            const folder = file.fieldname === 'song' ? 'songs' : 'posters';
+            cb(null, `${folder}/${Date.now().toString()}-${file.originalname}`);
+        },
+    }),
+});
+

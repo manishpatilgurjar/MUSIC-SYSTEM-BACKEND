@@ -1,10 +1,7 @@
 import mongoose from 'mongoose';
-
-const mongoURI = 'mongodb+srv://root:passPASS@cluster0.qqwuk5s.mongodb.net/music-app?retryWrites=true&w=majority&appName=Cluster0';
-
 const connectDB = async () => {
   try {
-    await mongoose.connect(mongoURI, {
+    await mongoose.connect(process.env.MONGO_DB_SRV!, {
     } as mongoose.ConnectOptions);
     console.log('MongoDB Connected');
   } catch (error) {

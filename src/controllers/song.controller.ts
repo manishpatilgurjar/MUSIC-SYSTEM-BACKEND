@@ -5,10 +5,14 @@ import { internalServerError } from '../helpers/responseFormate';
 class SongController {
     public async uploadSong(req: Request, res: Response): Promise<void> {
         try {
-            const response = await SongService.uploadSong(req);
-            res.json(response);
+            if (req.userRole && req.userRole.name === 'admin' && req.userPermissions && req.userPermissions.includes('create')) {
+                const response = await SongService.uploadSong(req);
+                res.json(response);
+            } else {
+                // Handle the case where userRole is undefined or does not have 'admin' role
+                res.status(403).json({ message: 'Unauthorized' });
+            }
         } catch (error) {
-            console.log(error)
             res.json(internalServerError);
         }
     }

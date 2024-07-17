@@ -2,8 +2,8 @@ import jwt, { Secret } from 'jsonwebtoken';
 import User from '../models/users';
 
 // Secret keys used to sign/verify tokens
-const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET || 'your_access_token_secret';
-const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || 'your_refresh_token_secret';
+const accessTokenSecret =process.env.ACCESS_TOKEN_SECRET!;
+const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET !;
 
 export function generateAccessToken(userId: string): string {
     try {
@@ -20,28 +20,30 @@ export function generateLongLivedAccessToken(userId: string): string {
         throw new Error('Failed to generate long-lived access token');
     }
 }
-
 export const verifyAccessToken = async (accessToken: string) => {
     try {
         // Verify the access token using the access token secret key
         const decoded = jwt.verify(accessToken, accessTokenSecret) as { userId: string, exp: number };
+
         // Extract user information from the decoded token
         const userId = decoded.userId;
         const user = await User.findById(userId);
+
         if (!user) {
             throw new Error('User not found');
         }
+
         // Check if the token has expired
         const currentTimeInSeconds = Math.floor(Date.now() / 1000);
         if (decoded.exp < currentTimeInSeconds) {
             throw new Error('Access token has expired');
         }
-        return { user };
+
+        return user; // Return the user document
     } catch (error) {
         throw new Error('Invalid access token');
     }
 };
-
 
 export const verifyRefreshToken = async (refreshToken: string) => {
     try {

@@ -5,7 +5,7 @@ import { ResponseCodes } from '../utils/responseCodes';
 import { ResponseMessages } from '../utils/responseMessages';
 import { generateAccessToken, generateLongLivedAccessToken } from '../helpers/user.helper';
 import { generateRandomId } from '../utils/IdGenetrator';
-
+import { formatEmailTemplate, transporter } from '../configs/mail';
 class UserService {
     public async createUser(firstName: string, lastName: string, username: string, email: string, password: string) {
         // Check if user already exists
@@ -37,7 +37,7 @@ class UserService {
             username,
             email,
             password: hashedPassword,
-            role:"6696bba1cee65b613921ecd0"
+            role: "6696bba1cee65b613921ecd0"
         });
 
         await newUser.save();
@@ -56,16 +56,16 @@ class UserService {
         }
 
         try {
-            
-            const accessToken = generateAccessToken("1234567890");
-            const longLivedAccessToken = generateLongLivedAccessToken("123456789");
+            const accessToken = generateAccessToken(user._id);
+            const longLivedAccessToken = generateLongLivedAccessToken(user._id);
 
             user.longLivedAccessToken = longLivedAccessToken;
             await user.save();
 
             return handleResponse(ResponseCodes.success, ResponseMessages.loginSuccess, { user, accessToken, longLivedAccessToken });
-            
+
         } catch (error) {
+            console.error(error);
             return internalServerError;
         }
     }
@@ -85,16 +85,21 @@ class UserService {
             return handleResponse(ResponseCodes.notFound, ResponseMessages.userNotFound);
         }
 
-        return handleResponse(ResponseCodes.success, ResponseMessages.otpsent, otp);
+        try {
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: 'Your One-Time Password (OTP)',
+                html: formatEmailTemplate(otp),
+            };
 
-        // const mailOptions = {
-        //     from: process.env.EMAIL,
-        //     to: email,
-        //     subject: 'Your OTP',
-        //     text: `Your OTP is: ${otp}`
-        // };
+            await transporter.sendMail(mailOptions);
 
-        // await transporter.sendMail(mailOptions);
+            return handleResponse(ResponseCodes.success, ResponseMessages.otpsent);
+        } catch (error) {
+            console.error(error);
+            return internalServerError;
+        }
     }
 
     public async resetPassword(email: string, otp: string, newPassword: string) {
