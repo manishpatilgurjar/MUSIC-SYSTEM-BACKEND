@@ -62,7 +62,7 @@ class UserService {
             user.longLivedAccessToken = longLivedAccessToken;
             await user.save();
 
-            return handleResponse(ResponseCodes.success, ResponseMessages.loginSuccess, { user, accessToken, longLivedAccessToken });
+            return handleResponse(ResponseCodes.success, ResponseMessages.loginSuccess, {accessToken, longLivedAccessToken });
 
         } catch (error) {
             console.error(error);
@@ -97,8 +97,8 @@ class UserService {
 
             return handleResponse(ResponseCodes.success, ResponseMessages.otpsent);
         } catch (error) {
-            console.error(error);
-            return internalServerError;
+            // console.error(error);
+            return error;
         }
     }
 
