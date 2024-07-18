@@ -4,7 +4,6 @@ import Song from '../models/songs';
 import { handleResponse } from '../helpers/responseFormate';
 import { ResponseCodes } from '../utils/responseCodes';
 import { ResponseMessages } from '../utils/responseMessages';
-import { S3Client } from "@aws-sdk/client-s3";
 import { upload } from '../configs/s3';
 
 interface UploadedFile extends Express.Multer.File {

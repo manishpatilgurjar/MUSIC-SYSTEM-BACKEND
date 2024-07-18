@@ -37,7 +37,7 @@ class UserService {
             username,
             email,
             password: hashedPassword,
-            role: "6696bba1cee65b613921ecd0"
+            role: "66979733116ce25dd9841078"
         });
 
         await newUser.save();
