@@ -1,6 +1,7 @@
 import jwt, { Secret } from 'jsonwebtoken';
 import User from '../models/users';
-
+import dotenv from "dotenv";
+dotenv.config();
 // Secret keys used to sign/verify tokens
 const accessTokenSecret =process.env.ACCESS_TOKEN_SECRET!;
 const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET !;
