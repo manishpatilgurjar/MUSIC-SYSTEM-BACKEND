@@ -8,6 +8,8 @@ export interface ISong extends Document {
     releaseDate: Date;
     songUrl: string;
     posterUrl: string;
+    songKey: string;
+    posterKey: string;
 }
 
 const SongSchema = new Schema({
@@ -18,6 +20,8 @@ const SongSchema = new Schema({
     releaseDate: { type: Date, required: true },
     songUrl: { type: String, required: true },
     posterUrl: { type: String, required: true },
+    songKey: { type: String, required: true },
+    posterKey: { type: String, required: true },
 });
 
 export default mongoose.model<ISong>('Song', SongSchema);

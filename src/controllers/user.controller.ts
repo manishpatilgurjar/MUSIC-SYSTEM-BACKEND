@@ -7,7 +7,7 @@ class UserController {
         const { firstName, lastName, username, email, password } = req.body;
         try {
             const newUser = await userService.createUser(firstName, lastName, username, email, password);
-            res.json(newUser);
+            res.status(200).json(newUser);
         } catch (error) {
             console.log(error);
             res.json(internalServerError);
@@ -18,7 +18,7 @@ class UserController {
         const { loginIdentifier, password } = req.body;
         try {
             const response = await userService.loginUser(loginIdentifier, password);
-            res.json(response);
+            res.status(200).json(response);
         } catch (error) {
             console.error(error);
             res.json(internalServerError);

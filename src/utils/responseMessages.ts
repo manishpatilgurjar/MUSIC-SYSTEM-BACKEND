@@ -23,7 +23,11 @@ export const ResponseMessages={
     UserDetails:"User details fetched successfully",
     passwordChanged:'Password changed successfully',
     invalidCurrentPassword:"invalid current password",
-    AnalysisMessage:"Analysis successfull"
+    AnalysisMessage:"Analysis successfull",
+    songDeleted: "Song deleted successfully",
+    songNotFound: "Song not found",
+    songsFetched: "Songs fetched successfully",
+    songFetched: "Song fetched successfully",
     
 
 
