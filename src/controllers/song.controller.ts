@@ -5,7 +5,7 @@ import { internalServerError } from '../helpers/responseFormate';
 class SongController {
     public async uploadSong(req: Request, res: Response): Promise<void> {
         try {
-            if (req.userRole && req.userRole.name === 'admin' && req.userPermissions && req.userPermissions.includes('create')) {
+            if (req.userRole && req.userRole.name === 'admin' && req.userPermissions && req.userPermissions.includes('upload')) {
                 const response = await SongService.uploadSong(req);
                 res.json(response);
             } else {
