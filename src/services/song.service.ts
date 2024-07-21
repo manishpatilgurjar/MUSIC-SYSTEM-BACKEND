@@ -80,10 +80,69 @@ class SongService {
         }
     }
 
+    
     public async getSongs(req: Request) {
         try {
-            const songs = await Song.find();
-            return handleResponse(ResponseCodes.success, ResponseMessages.songsFetched, songs);
+            const { page = 1, pageSize = 10, search, genre, artist, sort = 'title', order = 'asc' } = req.query;
+            const query: any = {};
+
+            // Search filter
+            if (search) {
+                query.$or = [
+                    { title: { $regex: search, $options: 'i' } },
+                    { artist: { $regex: search, $options: 'i' } },
+                    { album: { $regex: search, $options: 'i' } },
+                ];
+            }
+
+            // Genre filter
+            if (genre) {
+                query.genre = genre;
+            }
+
+            // Artist filter
+            if (artist) {
+                query.artist = artist;
+            }
+
+            // Sorting
+            const sortOrder = order === 'desc' ? -1 : 1;
+            const sortBy = sort === 'views' ? 'views' : (sort as string);
+
+            const songs = await Song.aggregate([
+                { $match: query },
+                {
+                    $lookup: {
+                        from: 'songviews',
+                        localField: '_id',
+                        foreignField: 'song',
+                        as: 'viewsData'
+                    }
+                },
+                {
+                    $addFields: {
+                        views: { $arrayElemAt: ['$viewsData.views', 0] }
+                    }
+                },
+                { $unset: 'viewsData' },
+                { $sort: { [sortBy]: sortOrder } },
+                { $skip: (+page - 1) * +pageSize },
+                { $limit: +pageSize },
+            ]);
+
+            const totalSongs = await Song.countDocuments(query);
+
+            const response = {
+                songs,
+                pagination: {
+                    total: totalSongs,
+                    page: +page,
+                    pageSize: +pageSize,
+                    totalPages: Math.ceil(totalSongs / +pageSize),
+                },
+            };
+
+            return handleResponse(ResponseCodes.success, ResponseMessages.songsFetched, response);
         } catch (error) {
             return internalServerError;
         }
