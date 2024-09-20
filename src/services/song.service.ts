@@ -4,9 +4,11 @@ import SongView from '../models/songView';
 import { handleResponse, internalServerError } from '../helpers/responseFormate';
 import { ResponseCodes } from '../utils/responseCodes';
 import { ResponseMessages } from '../utils/responseMessages';
-import { upload, s3 } from '../configs/s3';
+import { s3 } from '../configs/s3';
 import { DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { uploadFilesToS3 } from '../helpers/upload';
+
 
 interface UploadedFile extends Express.Multer.File {
     location: string;
@@ -15,48 +17,38 @@ interface UploadedFile extends Express.Multer.File {
 
 class SongService {
     public async uploadSong(req: Request) {
-        return new Promise((resolve, reject) => {
-            upload.fields([{ name: 'song', maxCount: 1 }, { name: 'poster', maxCount: 1 }])(req, null as any, async (err: any) => {
-                if (err) {
-                    return reject(handleResponse(ResponseCodes.notFound, err.message));
-                }
+        try {
+            const files = await uploadFilesToS3(req); // Use the helper function
+            const songFile = (files as { [fieldname: string]: UploadedFile[] }).song[0];
+            const posterFile = (files as { [fieldname: string]: UploadedFile[] }).poster[0];
+            const songUrl = songFile.location;
+            const posterUrl = posterFile.location;
+            const songKey = songFile.key;
+            const posterKey = posterFile.key;
+            const { title, artist, album, genre, releaseDate } = req.body;
 
-                if (!req.files || !('song' in req.files) || !('poster' in req.files)) {
-                    return reject(handleResponse(ResponseCodes.notFound, "Missing files"));
-                }
-
-                const { title, artist, album, genre, releaseDate } = req.body;
-
-                const songFile = (req.files as { [fieldname: string]: UploadedFile[] }).song[0];
-                const posterFile = (req.files as { [fieldname: string]: UploadedFile[] }).poster[0];
-
-                const songUrl = songFile.location;
-                const posterUrl = posterFile.location;
-                const songKey = songFile.key;
-                const posterKey = posterFile.key;
-
-                const newSong = new Song({
-                    title,
-                    artist,
-                    album,
-                    genre,
-                    releaseDate,
-                    songUrl,
-                    posterUrl,
-                    songKey,
-                    posterKey,
-                });
-
-                await newSong.save();
-                resolve(handleResponse(ResponseCodes.success, ResponseMessages.songUploaded, newSong));
+            const newSong = new Song({
+                title,
+                artist,
+                album,
+                genre,
+                releaseDate,
+                songUrl,
+                posterUrl,
+                songKey,
+                posterKey,
             });
-        });
+            await newSong.save();
+            return handleResponse(ResponseCodes.success, ResponseMessages.songUploaded, newSong);
+        } catch (error) {
+            return internalServerError; // Handle error properly
+        }
     }
 
     public async deleteSong(req: Request) {
         try {
-            const { songId } = req.body;
-            const song = await Song.findById(songId);
+            const  {id}  = req.params;
+            const song = await Song.findById(id);
             if (!song) {
                 return handleResponse(ResponseCodes.notFound, ResponseMessages.songNotFound);
             }
@@ -150,15 +142,15 @@ class SongService {
 
     public async getSongById(req: Request) {
         try {
-            const { songId } = req.query;
-            const song = await Song.findById(songId);
+            const {id} = req.params;
+            const song = await Song.findById(id);
             if (!song) {
                 return handleResponse(ResponseCodes.notFound, ResponseMessages.songNotFound);
             }
 
             // Increment the view count
             await SongView.findOneAndUpdate(
-                { song: songId },
+                { song: id },
                 { $inc: { views: 1 } },
                 { new: true, upsert: true }
             );
